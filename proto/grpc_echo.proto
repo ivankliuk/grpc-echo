@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package grpc_echo;
+
+// Content is the payload used in the services.
+message Content {
+  string payload = 1;
+}
+
+message Pong {
+  string payload = 1;
+  string invocation_metadata = 2;
+}
+
+// The echo service replies with the message it received.
+service Echo {
+  rpc Ping(Content) returns (Pong) {}
+}

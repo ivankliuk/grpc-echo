@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grpc-echo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grpc-echo
+  template:
+    metadata:
+      labels:
+        app: grpc-echo
+    spec:
+      containers:
+        - image: ivankliuk/grpc_echo:0.0.1
+          imagePullPolicy: Always
+          name: grpc-echo
+          ports:
+            - containerPort: 9000
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grpc-echo-service
+spec:
+  ports:
+    - port: 80
+      targetPort: 9000
+      protocol: TCP
+  selector:
+    app: grpc-echo
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-grpc-echo
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-headers: X-User-Agent, X-Grpc-Web, Content-Type, Authorization, Grpc-Status
+    nginx.ingress.kubernetes.io/cors-expose-headers: Grpc-Status, Grpc-Message
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: my-example-host.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grpc-echo-service
+                port:
+                  number: 80
